@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <title>TianVilalta</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f0f4f8;
+    }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      padding: 40px;
+    }
+
+    .grid-item {
+      background-color: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      padding: 60px;
+      text-align: center;
+      font-size: 24px;
+      font-weight: bold;
+      color: #2c3e50;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .grid-item:hover {
+      transform: scale(1.03);
+    }
+
+    #clockSection {
+      display: none;
+      position: relative;
+      padding: 20px;
+    }
+
+    #drawSection {
+      display: none;
+      position: relative;
+      padding: 20px;
+    }
+
+    #addBtn {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      font-size: 32px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+      display: none;
+    }
+
+    #fullForm {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: #ffffff;
+      z-index: 999;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    #fullForm h2 {
+      font-size: 28px;
+      color: #34495e;
+    }
+
+    h1 {
+      font-size: 42px;
+      font-weight: 300;              /* lleuger, estil minimalista */
+      text-align: center;
+      margin: 20px 0;
+      color: #2c3e50;                /* gris fosc elegant */
+      letter-spacing: 1px;           /* lleuger espai entre lletres */
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    h1::after {
+      content: "";
+      display: block;
+      width: 300px;
+      height: 2px;
+      background-color: #3498db;     /* blau suau */
+      margin: 10px auto 0;
+      border-radius: 1px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #2c3e50;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    .nav-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      font-weight: bold;
+      color: #555;
+      background-color: #e0e0e0;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 20px;
+      margin-right: 10px;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: background-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .nav-button:hover {
+      background-color: #d0d0d0;
+      transform: scale(1.02);
+    }
+    #drawSection {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: #f8f8f8;
+      z-index: 998;
+    }
+
+    #drawCanvas {
+      position: absolute;
+      top: 250px;
+      left: 0;
+      width: 100%;
+      height: calc(100% - 60px);
+      cursor: crosshair;
+    }
+
+
+    #drawControls {
+      margin-top: 20px;
+    }
+
+    #drawControls button {
+      font-size: 18px;
+      padding: 10px 20px;
+      margin-right: 10px;
+      border: none;
+      border-radius: 6px;
+      background-color: #3498db;
+      color: white;
+      cursor: pointer;
+    }
+
+    #drawControls button:hover {
+      background-color: #2980b9;
+    }
+
+    .delete-button {
+      margin-top: 8px;
+      padding: 6px 12px;
+      font-size: 14px;
+      background-color: #e74c3c;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    .delete-button:hover {
+      background-color: #c0392b;
+    }
+
+    #addDrawBtn {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      font-size: 32px;
+      background-color: #3498db; /* blau */
+      color: white;
+      border: none;
+      border-radius: 50%; /* rodó */
+      width: 60px;
+      height: 60px;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+      z-index: 999;
+      display: block; /* assegura que es vegi */
+      transition: transform 0.2s ease;
+    }
+
+    #addDrawBtn:hover {
+      transform: scale(1.05);
+      background-color: #2980b9; /* blau més fosc al passar el cursor */
+    }
+
+    .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 20px;
+      padding: 20px;
+    }
+
+    .header-row h1 {
+      font-size: 48px;
+      margin: 0;
+      color: #2c3e50;
+    }
+
+    .nav-button {
+      font-size: 24px;
+      padding: 10px 16px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #catClockForm input[type="text"],
+    #catClockForm select {
+      width: 100%;
+      max-width: 600px;
+      margin: 10px auto;
+      display: block;
+      padding: 12px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+    #catClockForm {
+      text-align: center;
+      padding: 20px;
+    }
+    .delete-button {
+      padding: 6px 12px;
+      font-size: 14px;
+      background-color: #e74c3c;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    .delete-button:hover {
+      background-color: #c0392b;
+    }
+  </style>
+</head>
+<body>
+  <div id="viewDrawPopup" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:#fff; z-index:1000; padding:20px;">
+    <button class="nav-button" onclick="tancarVista()">🏠︎</button>
+    <h1>Vista de l'esquema</h1>
+    <img id="imgVista" src="" style="max-width:90%; max-height:80vh; display:block; margin:20px auto; border:1px solid #ccc;">
+  </div>
+
+
+  <div class="main-grid" id="mainGrid">
+    <div class="grid-item" onclick="showClockSection()">Rellotges</div>
+    <div class="grid-item" onclick="showDrawSection()">Esquemes</div>
+    <div class="grid-item">Impresora 3D</div>
+  </div>
+
+  <div id="clockSection">
+
+  <div class="header-row">
+    <button class="nav-button" onclick="goHome()">🏠︎</button>
+    <h1>Rellotges</h1>
+  </div>
+  <div id="compresRellotges" style="padding: 20px;"></div>
+  
+</div>
+
+<button id="addBtn" onclick="openFullForm()">+</button>
+<div id="drawSection">
+    <div class="header-row">
+      <button class="nav-button" onclick="goHome()">🏠︎</button>
+      <h1>Esquemes</h1>
+    </div>
+
+    <div id="drawGallery" style="padding: 20px;"></div>
+    <button id="addDrawBtn" onclick="openDrawForm()">+</button>
+
+    <div id="drawForm" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:#fff; z-index:999; padding:20px;">
+      
+      <div class="header-row">
+        <button class="nav-button" onclick="goHome()">🏠︎</button>
+        <h1>Nou esquema</h1>
+      </div>
+
+      
+
+      <div id="drawControlsFull">
+        <button onclick="clearCanvas()">Esborrar</button>
+        <button onclick="guardarNouDibuix()">Guardar</button>
+      </div>
+      <canvas id="drawCanvasFull" style="border:1px solid #ccc; margin-top:20px;"></canvas>
+    </div>
+  </div>
+
+  <div id="fullForm" style="display:none;">
+    
+    <div class="header-row">
+      <button class="nav-button" onclick="goHome()">🏠︎</button>
+      <h1>Comprar CATClock</h1>
+    </div>
+
+    <form id="catClockForm">
+      <div class="form-group">
+        <label for="nom">Nom persona:</label>
+        <input type="text" id="nom" name="nom" required>
+      </div>
+      <div class="form-group">
+        <label for="color">Color:</label>
+        <select id="color" name="color" required>
+          <option value="ferro">Ferro</option>
+          <option value="robell">Robell</option>
+          <option value="plata">Plata</option>
+        </select>
+      </div>
+      <input type="submit" value="Enviar" style="margin-top:20px; padding:10px 20px; font-size:16px;">
+    </form>
+  </div>
+
+
+
+  <script>
+    let canvasFull = document.getElementById("drawCanvasFull");
+    let ctxFull = canvasFull.getContext("2d");
+    let dibuixant = false;
+    let indexEditant = null;
+
+    function eliminarCompresCATClock() {
+      if (confirm("Segur que vols eliminar totes les compres CATClock?")) {
+        localStorage.removeItem("catClockCompres");
+        mostrarCompresRellotges();
+      }
+    }
+
+
+    function mostrarCompresRellotges() {
+      const cont = document.getElementById("compresRellotges");
+      cont.innerHTML = "<h3>Compres CATClock:</h3>";
+
+      const compres = JSON.parse(localStorage.getItem("catClockCompres")) || [];
+
+      if (compres.length === 0) {
+        cont.innerHTML += "<p>No hi ha compres registrades.</p>";
+        return;
+      }
+
+      const ul = document.createElement("ul");
+      compres.forEach((c, index) => {
+        const li = document.createElement("li");
+        li.style.display = "flex";
+        li.style.justifyContent = "space-between";
+        li.style.alignItems = "center";
+        li.style.marginBottom = "10px";
+
+        const text = document.createElement("span");
+        text.textContent = `${c.nom} — Color: ${c.color}`;
+
+        const btn = document.createElement("button");
+        btn.textContent = "Eliminar";
+        btn.className = "delete-button";
+        btn.onclick = () => eliminarCompraIndividual(index);
+
+        li.appendChild(text);
+        li.appendChild(btn);
+        ul.appendChild(li);
+      });
+
+      cont.appendChild(ul);
+    }
+
+    function eliminarCompraIndividual(index) {
+      let compres = JSON.parse(localStorage.getItem("catClockCompres")) || [];
+      compres.splice(index, 1);
+      localStorage.setItem("catClockCompres", JSON.stringify(compres));
+      mostrarCompresRellotges();
+    }
+
+    document.getElementById("catClockForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    const nom = document.getElementById("nom").value.trim();
+    const color = document.getElementById("color").value;
+
+    if (!nom || !color) return;
+
+    let compres = JSON.parse(localStorage.getItem("catClockCompres")) || [];
+    compres.push({ nom, color });
+    localStorage.setItem("catClockCompres", JSON.stringify(compres));
+
+    document.getElementById("catClockForm").reset();
+    mostrarCompresRellotges();
+    goHome(); // 👈 torna a l’inici
+  });
+
+
+    window.addEventListener("load", () => {
+      mostrarDibuixos();
+    });
+
+    function veureDibuix(dataURL) {
+      document.getElementById("imgVista").src = dataURL;
+      document.getElementById("viewDrawPopup").style.display = "block";
+    }
+    function tancarVista() {
+      document.getElementById("viewDrawPopup").style.display = "none";
+    }
+
+
+
+    function openDrawForm(nou = true, index = null) {
+      document.getElementById("drawForm").style.display = "block";
+      resizeCanvasFull();
+      clearCanvas();
+
+      if (!nou && index !== null) {
+        const dibuixos = JSON.parse(localStorage.getItem("dibuixos")) || [];
+        const img = new Image();
+        img.onload = function () {
+          ctxFull.drawImage(img, 0, 0);
+          indexEditant = index;
+        };
+        img.src = dibuixos[index];
+      } else {
+        indexEditant = null;
+      }
+    }
+
+    function resizeCanvasFull() {
+      canvasFull.width = window.innerWidth - 40;
+      canvasFull.height = window.innerHeight - 200;
+    }
+    window.addEventListener('resize', resizeCanvasFull);
+    window.addEventListener('load', resizeCanvasFull);
+
+    canvasFull.addEventListener('mousedown', () => dibuixant = true);
+    canvasFull.addEventListener('mouseup', () => {
+      dibuixant = false;
+      ctxFull.beginPath();
+    });
+    canvasFull.addEventListener('mousemove', e => {
+      if (!dibuixant) return;
+      const rect = canvasFull.getBoundingClientRect();
+      ctxFull.lineWidth = 2;
+      ctxFull.lineCap = 'round';
+      ctxFull.strokeStyle = '#2c3e50';
+      ctxFull.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+      ctxFull.stroke();
+      ctxFull.beginPath();
+      ctxFull.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+    });
+
+    function clearCanvas() {
+      ctxFull.clearRect(0, 0, canvasFull.width, canvasFull.height);
+    }
+
+    function openDrawForm() {
+      document.getElementById('drawForm').style.display = 'block';
+      resizeCanvasFull();
+      clearCanvas();
+    }
+
+    function closeDrawForm() {
+      document.getElementById('drawForm').style.display = 'none';
+    }
+
+
+    function guardarNouDibuix() {
+      const dataURL = canvasFull.toDataURL();
+      let dibuixos = JSON.parse(localStorage.getItem("dibuixos")) || [];
+
+      if (indexEditant !== null) {
+        dibuixos[indexEditant] = dataURL;
+      } else {
+        dibuixos.push(dataURL);
+      }
+
+      localStorage.setItem("dibuixos", JSON.stringify(dibuixos));
+      mostrarDibuixos();
+      closeDrawForm();
+    }
+
+    function mostrarDibuixos() {
+      const galeria = document.getElementById("drawGallery");
+      galeria.innerHTML = "";
+      let dibuixos = JSON.parse(localStorage.getItem("dibuixos")) || [];
+
+      dibuixos.forEach((dataURL, index) => {
+        const contenedor = document.createElement("div");
+        contenedor.style.display = "inline-block";
+        contenedor.style.margin = "10px";
+        contenedor.style.textAlign = "center";
+
+        const img = document.createElement("img");
+        img.src = dataURL;
+        img.style.width = "200px";
+        img.style.border = "1px solid #ccc";
+        img.style.cursor = "pointer";
+        img.title = "Fes clic per veure en gran";
+
+
+        img.onclick = () => veureDibuix(dataURL);
+
+        const btn = document.createElement("button");
+        btn.innerText = "Eliminar";
+        btn.className = "delete-button";
+        btn.onclick = () => eliminarDibuix(index);
+
+        contenedor.appendChild(img);
+        contenedor.appendChild(btn);
+        galeria.appendChild(contenedor);
+      });
+    }
+
+    function eliminarDibuix(index) {
+      let dibuixos = JSON.parse(localStorage.getItem("dibuixos")) || [];
+      dibuixos.splice(index, 1);
+      localStorage.setItem("dibuixos", JSON.stringify(dibuixos));
+      mostrarDibuixos();
+    }
+
+    function editarDibuix(index) {
+      const dibuixos = JSON.parse(localStorage.getItem("dibuixos")) || [];
+      const dataURL = dibuixos[index];
+      const img = new Image();
+      img.onload = function () {
+        clearCanvas();
+        ctxFull.drawImage(img, 0, 0);
+        canvasFull.dataset.editingIndex = index;
+        openDrawForm();
+      };
+      img.src = dataURL;
+    }
+
+    function showDrawSection() {
+      document.getElementById('mainGrid').style.display = 'none';
+      document.getElementById('drawSection').style.display = 'block';
+      document.getElementById('addDrawBtn').style.display = 'block';
+      resizeCanvas();
+      mostrarDibuixos();
+    }
+
+    function showClockSection() {
+      document.getElementById('mainGrid').style.display = 'none';
+      document.getElementById('clockSection').style.display = 'block';
+      document.getElementById('addBtn').style.display = 'block';
+      mostrarCompresRellotges();
+    }
+
+    function openFullForm() {
+      document.getElementById('clockSection').style.display = 'none';
+      document.getElementById('addBtn').style.display = 'none';
+      document.getElementById('fullForm').style.display = 'block';
+    }
+
+    function goHome() {
+      window.location.href = "http://127.0.0.1:5500/web/index.html";
+    }
+
+    function showDrawSection() {
+      document.getElementById('mainGrid').style.display = 'none';
+      document.getElementById('drawSection').style.display = 'block';
+      document.getElementById('addBtn').style.display = 'none';
+      resizeCanvas();
+      carregarCanvas();
+    }
+
+    // Dibuix al canvas
+    const canvas = document.getElementById('drawCanvas');
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+
+    function resizeCanvas() {
+      const controlsHeight = document.getElementById('drawControls').offsetHeight;
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight - controlsHeight - 100; // deixa espai pels botons
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('load', resizeCanvas);
+
+    canvas.addEventListener('mousedown', () => drawing = true);
+    canvas.addEventListener('mouseup', () => {
+      drawing = false;
+      ctx.beginPath();
+    });
+    canvas.addEventListener('mousemove', draw);
+
+    function draw(e) {
+      if (!drawing) return;
+      const rect = canvas.getBoundingClientRect();
+      ctx.lineWidth = 2;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = '#2c3e50';
+      ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+    }
+
+    function clearCanvas() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+
+    function guardarCanvas() {
+      const dataURL = canvas.toDataURL();
+      localStorage.setItem("dibuixGuardat", dataURL);
+    }
+
+    function carregarCanvas() {
+      const dataURL = localStorage.getItem("dibuixGuardat");
+      if (dataURL) {
+        const img = new Image();
+        img.onload = function () {
+          ctx.drawImage(img, 0, 0);
+        };
+        img.src = dataURL;
+      }
+    }
+  </script>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+

@@ -273,9 +273,76 @@
     .delete-button:hover {
       background-color: #c0392b;
     }
+
+    #columnesMaterials h4 {
+      font-weight: 500;
+      margin-bottom: 10px;
+      color: #2c3e50;
+    }
+
+    #columnesMaterials div {
+      font-family: 'Segoe UI', sans-serif;
+    }
+    #columnesMaterials div {
+      text-align: center;
+    }
+
+    #llistaMaterials {
+      position: relative;
+    }
+
+    .edit-button, .delete-button {
+      padding: 4px 8px;
+      font-size: 14px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .edit-button {
+      background-color: #f1c40f;
+      color: #2c3e50;
+    }
+
+    .delete-button {
+      background-color: #e74c3c;
+      color: white;
+    }
+
+    .edit-button:hover {
+      background-color: #f39c12;
+    }
+
+    .delete-button:hover {
+      background-color: #c0392b;
+    }
   </style>
 </head>
 <body>
+  <div id="materialSection" style="display:none; padding: 20px;">
+  <div class="header-row">
+    <button class="nav-button" onclick="goHome()">🏠︎</button>
+    <h1>Material</h1>
+  </div>
+
+  <button id="addMaterialBtn" onclick="mostrarFormulariMaterial()" style="margin: 20px; font-size: 24px;">➕</button>
+
+  <div id="formulariMaterial" style="display:none; margin-top: 20px;">
+    <form id="materialForm">
+      <label for="etiqueta">Etiqueta:</label>
+      <input type="number" id="etiqueta" name="etiqueta" required>
+
+      <button type="submit" style="margin-top:10px;">Guardar</button>
+    </form>
+  </div>
+
+  <div id="llistaMaterials" style="margin-top: 30px;">
+    <h3>Materials guardats:</h3>
+    <div id="columnesMaterials" style="display: flex; gap: 20px;"></div>
+    <svg id="liniesMaterials" width="100%" height="300" style="position: absolute; top: 0; left: 0; pointer-events: none;"></svg>
+  </div>
+
+</div>
   <div id="viewDrawPopup" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:#fff; z-index:1000; padding:20px;">
     <button class="nav-button" onclick="tancarVista()">🏠︎</button>
     <h1>Vista de l'esquema</h1>
@@ -286,16 +353,23 @@
   <div class="main-grid" id="mainGrid">
     <div class="grid-item" onclick="showClockSection()">Rellotges</div>
     <div class="grid-item" onclick="showDrawSection()">Esquemes</div>
-    <div class="grid-item">Impresora 3D</div>
+    
   </div>
 
   <div id="clockSection">
+
 
   <div class="header-row">
     <button class="nav-button" onclick="goHome()">🏠︎</button>
     <h1>Rellotges</h1>
   </div>
+
+  <div id="materialSubsection" style="padding: 20px;">
+    <h3 onclick="showMaterialSection()" style="cursor:pointer; color:#2980b9;">Materials</h3>
+  </div>
+
   <div id="compresRellotges" style="padding: 20px;"></div>
+  
   
 </div>
 
@@ -357,6 +431,184 @@
     let ctxFull = canvasFull.getContext("2d");
     let dibuixant = false;
     let indexEditant = null;
+
+
+    function showMaterialSection() {
+      document.getElementById("mainGrid").style.display = "none";
+      document.getElementById("clockSection").style.display = "none";
+      document.getElementById("materialSection").style.display = "block";
+      mostrarLlistaMaterials();
+    }
+
+    function mostrarFormulariMaterial() {
+      document.getElementById("formulariMaterial").style.display = "block";
+    }
+
+    function dibuixarLiniesEntreColumnes() {
+      const svg = document.getElementById("liniesMaterials");
+      svg.innerHTML = "";
+
+      const columnes = document.querySelectorAll("#columnesMaterials > div");
+      const punts = [];
+
+      columnes.forEach(col => {
+        const primer = col.querySelector("div");
+        if (primer) {
+          const rect = primer.getBoundingClientRect();
+          const x = rect.left + rect.width / 2 + window.scrollX;
+          const y = rect.top + rect.height / 2 + window.scrollY;
+          punts.push({ x, y });
+        }
+      });
+
+      punts.forEach((punt, i) => {
+        if (i < punts.length - 1) {
+          const seguent = punts[i + 1];
+          const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+          line.setAttribute("x1", punt.x);
+          line.setAttribute("y1", punt.y);
+          line.setAttribute("x2", seguent.x);
+          line.setAttribute("y2", seguent.y);
+          line.setAttribute("stroke", "#3498db");
+          line.setAttribute("stroke-width", "2");
+          svg.appendChild(line);
+        }
+      });
+    }
+
+    document.getElementById("materialForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const etiqueta = document.getElementById("etiqueta").value.trim();
+      if (!etiqueta) return;
+
+      let estat = etiqueta.startsWith("2") ? "Pintat i barniçat" : "Sense definir";
+
+      let materials = JSON.parse(localStorage.getItem("materials")) || [];
+      materials.push({ etiqueta, estat });
+      localStorage.setItem("materials", JSON.stringify(materials));
+
+      document.getElementById("materialForm").reset();
+      document.getElementById("formulariMaterial").style.display = "none";
+      mostrarLlistaMaterials();
+    });
+
+    function mostrarLlistaMaterials() {
+      const cont = document.getElementById("columnesMaterials");
+      cont.innerHTML = "";
+
+      const materials = JSON.parse(localStorage.getItem("materials")) || [];
+
+      // Crear 5 columnes buides
+      const columnes = [[], [], [], [], []];
+
+      // Repartir materials segons el primer dígit
+      materials.forEach((m, i) => {
+        const prefix = m.etiqueta.toString().charAt(0);
+        const index = parseInt(prefix) - 1;
+        if (index >= 0 && index < 5) {
+          columnes[index].push({ ...m, indexGlobal: i });
+        }
+      });
+
+      columnes.forEach((grup, i) => {
+        const col = document.createElement("div");
+        col.style.flex = "1";
+        col.style.border = "1px solid #ccc";
+        col.style.padding = "10px";
+        col.style.borderRadius = "6px";
+        col.style.backgroundColor = "#f9f9f9";
+        col.style.textAlign = "center";
+
+        const titol = document.createElement("h4");
+        titol.textContent = `Etiqueta ${i + 1}`;
+        titol.style.textAlign = "center";
+        col.appendChild(titol);
+
+        if (grup.length === 0) {
+          const buit = document.createElement("p");
+          buit.textContent = "—";
+          col.appendChild(buit);
+        } else {
+          // Agrupar per segon dígit
+          const grups = {};
+          grup.forEach(m => {
+            const segon = m.etiqueta.toString().charAt(1) || "0";
+            if (!grups[segon]) grups[segon] = [];
+            grups[segon].push(m);
+          });
+
+          let toggle = true;
+          Object.keys(grups).sort().forEach(clau => {
+            const bloc = document.createElement("div");
+            bloc.style.backgroundColor = toggle ? "#eeeeee" : "#f6f6f6";
+            bloc.style.padding = "8px";
+            bloc.style.marginBottom = "6px";
+            bloc.style.borderRadius = "4px";
+
+            grups[clau].forEach(m => {
+              const item = document.createElement("div");
+              item.style.marginBottom = "4px";
+              item.style.display = "flex";
+              item.style.justifyContent = "space-between";
+              item.style.alignItems = "center";
+              item.style.gap = "10px";
+
+              const text = document.createElement("span");
+              text.textContent = `#${m.etiqueta}`;
+              text.style.flex = "1";
+
+              const btnEdit = document.createElement("button");
+              btnEdit.textContent = "✏️";
+              btnEdit.className = "edit-button";
+              btnEdit.onclick = () => editarMaterial(m.indexGlobal);
+
+              const btnDelete = document.createElement("button");
+              btnDelete.textContent = "🗑️";
+              btnDelete.className = "delete-button";
+              btnDelete.onclick = () => eliminarMaterial(m.indexGlobal);
+
+              item.appendChild(text);
+              item.appendChild(btnEdit);
+              item.appendChild(btnDelete);
+              bloc.appendChild(item);
+            });
+
+            col.appendChild(bloc);
+            toggle = !toggle;
+          });
+        }
+
+        cont.appendChild(col);
+      });
+
+      // Dibuixar línies entre primers elements
+      setTimeout(() => {
+        dibuixarLiniesEntreColumnes();
+      }, 100);
+    }
+    
+    function eliminarMaterial(index) {
+      let materials = JSON.parse(localStorage.getItem("materials")) || [];
+      materials.splice(index, 1);
+      localStorage.setItem("materials", JSON.stringify(materials));
+      mostrarLlistaMaterials();
+    }
+
+    function editarMaterial(index) {
+      let materials = JSON.parse(localStorage.getItem("materials")) || [];
+      const m = materials[index];
+
+      const novaEtiqueta = prompt("Nova etiqueta:", m.etiqueta);
+      if (novaEtiqueta === null || novaEtiqueta.trim() === "") return;
+
+      let estat = novaEtiqueta.startsWith("2") ? "Pintat i barniçat" : "Sense definir";
+
+      materials[index] = { etiqueta: novaEtiqueta.trim(), estat };
+      localStorage.setItem("materials", JSON.stringify(materials));
+      mostrarLlistaMaterials();
+    }
+
 
     function eliminarCompresCATClock() {
       if (confirm("Segur que vols eliminar totes les compres CATClock?")) {
@@ -586,7 +838,7 @@
     }
 
     function goHome() {
-      window.location.href = "http://127.0.0.1:5500/web/index.html";
+      window.location.href = "https://tianvilalta.github.io/TV/";
     }
 
     function showDrawSection() {

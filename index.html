@@ -1,918 +1,313 @@
 <!DOCTYPE html>
 <html lang="ca">
 <head>
-  <meta charset="UTF-8">
-  <title>TianVilalta</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Taula</title>
   <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f0f4f8;
+    :root{
+      --bg:#f7fafc;
+      --card:#ffffff;
+      --muted:#6b7280;
+      --accent:#2563eb;
+      --danger:#ef4444;
+      --border:#e6edf3;
     }
+    body { font-family: Inter, system-ui, Arial, sans-serif; padding: 32px; background: linear-gradient(180deg,#eef2ff 0%,var(--bg) 100%); color:#0f172a; }
+    h1 { margin:0 0 16px; font-size:20px; color:#0b1220; }
+    .wrap { max-width:40%; margin:0 auto; position:relative; }
+    table { border-collapse: collapse; width:100%; background:var(--card); border-radius:10px; overflow:hidden; box-shadow:0 6px 18px rgba(15,23,42,0.08); }
+    thead th { background:linear-gradient(90deg, rgba(37,99,235,0.06), rgba(37,99,235,0.03)); color:#0b1220; font-weight:600; padding:14px 16px; text-align:left; border-bottom:1px solid var(--border); }
+    th, td { border-bottom:1px solid var(--border); padding:12px 16px; }
+    tbody tr:last-child td { border-bottom: none; }
+    td:first-child { width:65%; color:#0b1220; font-weight:500; }
+    .controls { display:inline-flex; gap:8px; align-items:center; background:transparent; padding:4px; }
+    .qty { min-width:36px; display:inline-block; text-align:center; font-weight:600; color:#0b1220; }
+    button { border: none; background:transparent; cursor:pointer; padding:6px; border-radius:8px; transition:all .12s ease; display:inline-grid; place-items:center; width:36px; height:36px; box-shadow: inset 0 -1px 0 rgba(255,255,255,0.02); }
+    button.increase { background: linear-gradient(180deg,var(--accent),#1e40af); color:white; }
+    button.decrease { background: linear-gradient(180deg,#fff,#f8fafc); color:var(--danger); border:1px solid rgba(235,87,87,0.08); }
+    button:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(2,6,23,0.08); }
+    .meta { margin-top:12px; font-size:13px; color:var(--muted); }
+    .badge { font-size:12px; padding:6px 8px; border-radius:999px; background:#eef2ff; color:var(--accent); display:inline-block; margin-left:8px; }
 
-    .main-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 20px;
-      padding: 40px;
-    }
-
-    .grid-item {
-      background-color: #ffffff;
-      border-radius: 12px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      padding: 60px;
-      text-align: center;
-      font-size: 24px;
-      font-weight: bold;
-      color: #2c3e50;
-      cursor: pointer;
-      transition: transform 0.2s ease;
-    }
-
-    .grid-item:hover {
-      transform: scale(1.03);
-    }
-
-    #clockSection {
-      display: none;
-      position: relative;
-      padding: 20px;
-    }
-
-    #drawSection {
-      display: none;
-      position: relative;
-      padding: 20px;
-    }
-
-    #addBtn {
+    /* floating add button */
+    .fab {
       position: fixed;
-      bottom: 30px;
-      right: 30px;
-      font-size: 32px;
-      background-color: #3498db;
-      color: white;
+      right: 24px;
+      bottom: 24px;
+      width:56px;
+      height:56px;
+      border-radius:50%;
+      background: linear-gradient(180deg,var(--accent),#1e40af);
+      color:white;
+      display:grid;
+      place-items:center;
+      font-size:28px;
+      box-shadow: 0 8px 30px rgba(2,6,23,0.18);
+      cursor:pointer;
+      z-index: 60;
       border: none;
-      border-radius: 50%;
-      width: 60px;
-      height: 60px;
-      cursor: pointer;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-      display: none;
     }
 
-    #fullForm {
-      display: none;
+    /* modal panel */
+    .overlay {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background-color: #ffffff;
-      z-index: 999;
-      padding: 20px;
-      overflow-y: auto;
-    }
-
-    #fullForm h2 {
-      font-size: 28px;
-      color: #34495e;
-    }
-
-    h1 {
-      font-size: 42px;
-      font-weight: 300;              /* lleuger, estil minimalista */
-      text-align: center;
-      margin: 20px 0;
-      color: #2c3e50;                /* gris fosc elegant */
-      letter-spacing: 1px;           /* lleuger espai entre lletres */
-      font-family: 'Segoe UI', sans-serif;
-    }
-
-    h1::after {
-      content: "";
-      display: block;
-      width: 300px;
-      height: 2px;
-      background-color: #3498db;     /* blau suau */
-      margin: 10px auto 0;
-      border-radius: 1px;
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: bold;
-      color: #2c3e50;
-    }
-
-    input, select {
-      width: 100%;
-      padding: 10px;
-      font-size: 16px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-    }
-
-    .nav-button {
-      display: inline-flex;
+      inset: 0;
+      background: rgba(2,6,23,0.45);
+      display: none;
       align-items: center;
       justify-content: center;
-      font-size: 30px;
-      font-weight: bold;
-      color: #555;
-      background-color: #e0e0e0;
-      border: none;
-      border-radius: 10px;
-      padding: 12px 20px;
-      margin-right: 10px;
-      cursor: pointer;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      transition: background-color 0.2s ease, transform 0.2s ease;
+      z-index: 70;
+    }
+    .overlay.show { display: flex; }
+    .panel {
+      background: var(--card);
+      padding: 18px;
+      border-radius: 12px;
+      width: 360px;
+      box-shadow: 0 12px 40px rgba(2,6,23,0.2);
+    }
+    .panel h2 { margin:0 0 12px; font-size:18px; }
+    .field { margin-bottom:10px; }
+    .field label { display:block; font-size:13px; color:var(--muted); margin-bottom:6px; }
+    .field input[type="text"], .field input[type="number"] {
+      width:100%;
+      padding:10px 12px;
+      border:1px solid var(--border);
+      border-radius:8px;
+      font-size:14px;
+    }
+    .panel .actions { display:flex; gap:8px; justify-content:flex-end; margin-top:8px; }
+    .btn { padding:8px 12px; border-radius:8px; cursor:pointer; border: none; }
+    .btn.primary { background:var(--accent); color:white; }
+    .btn.ghost { background: #f3f4f6; color:#0b1220; }
+
+    /* small responsive tweaks */
+    @media (max-width:420px) {
+      .panel { width: 92%; }
     }
 
-    .nav-button:hover {
-      background-color: #d0d0d0;
-      transform: scale(1.02);
-    }
-    #drawSection {
-      display: none;
+    /* idle blackout overlay (most of the change) */
+    #idleOverlay {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background-color: #f8f8f8;
-      z-index: 998;
+      inset: 0;
+      background: #000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .22s ease;
+      z-index: 9999;
     }
-
-    #drawCanvas {
-      position: absolute;
-      top: 250px;
-      left: 0;
-      width: 100%;
-      height: calc(100% - 60px);
-      cursor: crosshair;
-    }
-
-
-    #drawControls {
-      margin-top: 20px;
-    }
-
-    #drawControls button {
-      font-size: 18px;
-      padding: 10px 20px;
-      margin-right: 10px;
-      border: none;
-      border-radius: 6px;
-      background-color: #3498db;
-      color: white;
-      cursor: pointer;
-    }
-
-    #drawControls button:hover {
-      background-color: #2980b9;
-    }
-
-    .delete-button {
-      margin-top: 8px;
-      padding: 6px 12px;
-      font-size: 14px;
-      background-color: #e74c3c;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background-color 0.2s ease;
-    }
-
-    .delete-button:hover {
-      background-color: #c0392b;
-    }
-
-    #addDrawBtn {
-      position: fixed;
-      bottom: 30px;
-      right: 30px;
-      font-size: 32px;
-      background-color: #3498db; /* blau */
-      color: white;
-      border: none;
-      border-radius: 50%; /* rodó */
-      width: 60px;
-      height: 60px;
-      cursor: pointer;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-      z-index: 999;
-      display: block; /* assegura que es vegi */
-      transition: transform 0.2s ease;
-    }
-
-    #addDrawBtn:hover {
-      transform: scale(1.05);
-      background-color: #2980b9; /* blau més fosc al passar el cursor */
-    }
-
-    .header-row {
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      gap: 20px;
-      padding: 20px;
-    }
-
-    .header-row h1 {
-      font-size: 48px;
-      margin: 0;
-      color: #2c3e50;
-    }
-
-    .nav-button {
-      font-size: 24px;
-      padding: 10px 16px;
-      background-color: #3498db;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-
-    #catClockForm input[type="text"],
-    #catClockForm select {
-      width: 100%;
-      max-width: 600px;
-      margin: 10px auto;
-      display: block;
-      padding: 12px;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      box-sizing: border-box;
-    }
-    #catClockForm {
-      text-align: center;
-      padding: 20px;
-    }
-    .delete-button {
-      padding: 6px 12px;
-      font-size: 14px;
-      background-color: #e74c3c;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background-color 0.2s ease;
-    }
-
-    .delete-button:hover {
-      background-color: #c0392b;
-    }
-
-    #columnesMaterials h4 {
-      font-weight: 500;
-      margin-bottom: 10px;
-      color: #2c3e50;
-    }
-
-    #columnesMaterials div {
-      font-family: 'Segoe UI', sans-serif;
-    }
-    #columnesMaterials div {
-      text-align: center;
-    }
-
-    #llistaMaterials {
-      position: relative;
-    }
-
-    .edit-button, .delete-button {
-      padding: 4px 8px;
-      font-size: 14px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    .edit-button {
-      background-color: #f1c40f;
-      color: #2c3e50;
-    }
-
-    .delete-button {
-      background-color: #e74c3c;
-      color: white;
-    }
-
-    .edit-button:hover {
-      background-color: #f39c12;
-    }
-
-    .delete-button:hover {
-      background-color: #c0392b;
+    #idleOverlay.show {
+      opacity: 1;
+      pointer-events: auto;
     }
   </style>
 </head>
 <body>
-  <div id="materialSection" style="display:none; padding: 20px;">
-  <div class="header-row">
-    <button class="nav-button" onclick="goHome()">🏠︎</button>
-    <h1>Material</h1>
+  <div class="wrap">
+    <h1>Inventari</h1>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Article</th>
+          <th>Quantitat</th>
+        </tr>
+      </thead>
+      <tbody id="rows-tbody">
+        <!-- rows rendered dinamically -->
+      </tbody>
+    </table>
   </div>
 
-  <button id="addMaterialBtn" onclick="mostrarFormulariMaterial()" style="margin: 20px; font-size: 24px;">➕</button>
+  <!-- floating add button -->
+  <button class="fab" id="addBtn" aria-label="Afegir article">+</button>
 
-  <div id="formulariMaterial" style="display:none; margin-top: 20px;">
-    <form id="materialForm">
-      <label for="etiqueta">Etiqueta:</label>
-      <input type="number" id="etiqueta" name="etiqueta" required>
-
-      <button type="submit" style="margin-top:10px;">Guardar</button>
-    </form>
-  </div>
-
-  <div id="llistaMaterials" style="margin-top: 30px;">
-    <h3>Materials guardats:</h3>
-    <div id="columnesMaterials" style="display: flex; gap: 20px;"></div>
-    <svg id="liniesMaterials" width="100%" height="300" style="position: absolute; top: 0; left: 0; pointer-events: none;"></svg>
-  </div>
-
-</div>
-  <div id="viewDrawPopup" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:#fff; z-index:1000; padding:20px;">
-    <button class="nav-button" onclick="tancarVista()">🏠︎</button>
-    <h1>Vista de l'esquema</h1>
-    <img id="imgVista" src="" style="max-width:90%; max-height:80vh; display:block; margin:20px auto; border:1px solid #ccc;">
-  </div>
-
-
-  <div class="main-grid" id="mainGrid">
-    <div class="grid-item" onclick="showClockSection()">Rellotges</div>
-    <div class="grid-item" onclick="showDrawSection()">Esquemes</div>
-    
-  </div>
-
-  <div id="clockSection">
-
-
-  <div class="header-row">
-    <button class="nav-button" onclick="goHome()">🏠︎</button>
-    <h1>Rellotges</h1>
-  </div>
-
-  <div id="materialSubsection" style="padding: 20px;">
-    <h3 onclick="showMaterialSection()" style="cursor:pointer; color:#2980b9;">Materials</h3>
-  </div>
-
-  <div id="compresRellotges" style="padding: 20px;"></div>
-  
-  
-</div>
-
-<button id="addBtn" onclick="openFullForm()">+</button>
-<div id="drawSection">
-    <div class="header-row">
-      <button class="nav-button" onclick="goHome()">🏠︎</button>
-      <h1>Esquemes</h1>
-    </div>
-
-    <div id="drawGallery" style="padding: 20px;"></div>
-    <button id="addDrawBtn" onclick="openDrawForm()">+</button>
-
-    <div id="drawForm" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:#fff; z-index:999; padding:20px;">
-      
-      <div class="header-row">
-        <button class="nav-button" onclick="goHome()">🏠︎</button>
-        <h1>Nou esquema</h1>
-      </div>
-
-      
-
-      <div id="drawControlsFull">
-        <button onclick="clearCanvas()">Esborrar</button>
-        <button onclick="guardarNouDibuix()">Guardar</button>
-      </div>
-      <canvas id="drawCanvasFull" style="border:1px solid #ccc; margin-top:20px;"></canvas>
+  <!-- modal form -->
+  <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="panel" role="document">
+      <h2>Afegir article</h2>
+      <form id="addForm">
+        <div class="field">
+          <label for="articleName">Nom de l'article</label>
+          <input id="articleName" name="name" type="text" required maxlength="80" />
+        </div>
+        <div class="field">
+          <label for="articleQty">Quantitat inicial</label>
+          <input id="articleQty" name="qty" type="number" min="0" value="0" />
+        </div>
+        <div class="actions">
+          <button type="button" class="btn ghost" id="cancelAdd">-</button>
+          <button type="submit" class="btn primary">+</button>
+        </div>
+      </form>
     </div>
   </div>
-
-  <div id="fullForm" style="display:none;">
-    
-    <div class="header-row">
-      <button class="nav-button" onclick="goHome()">🏠︎</button>
-      <h1>Comprar CATClock</h1>
-    </div>
-
-    <form id="catClockForm">
-      <div class="form-group">
-        <label for="nom">Nom persona:</label>
-        <input type="text" id="nom" name="nom" required>
-      </div>
-      <div class="form-group">
-        <label for="color">Color:</label>
-        <select id="color" name="color" required>
-          <option value="ferro">Ferro</option>
-          <option value="robell">Robell</option>
-          <option value="plata">Plata</option>
-        </select>
-      </div>
-      <input type="submit" value="Enviar" style="margin-top:20px; padding:10px 20px; font-size:16px;">
-    </form>
-  </div>
-
-
 
   <script>
-    let canvasFull = document.getElementById("drawCanvasFull");
-    let ctxFull = canvasFull.getContext("2d");
-    let dibuixant = false;
-    let indexEditant = null;
+    // dades i utilitats
+    const STORAGE_KEY = 'rows';
+    let rows = [];
+    let nextId = 1;
 
+    // si no hi ha res a localStorage, usar els valors inicials
+    const initial = [
+      { id: 1, name: 'Planxa lletres', qty: 7 },
+      { id: 2, name: 'Suport', qty: 0 }
+    ];
 
-    function showMaterialSection() {
-      document.getElementById("mainGrid").style.display = "none";
-      document.getElementById("clockSection").style.display = "none";
-      document.getElementById("materialSection").style.display = "block";
-      mostrarLlistaMaterials();
-    }
-
-    function mostrarFormulariMaterial() {
-      document.getElementById("formulariMaterial").style.display = "block";
-    }
-
-    function dibuixarLiniesEntreColumnes() {
-      const svg = document.getElementById("liniesMaterials");
-      svg.innerHTML = "";
-
-      const columnes = document.querySelectorAll("#columnesMaterials > div");
-      const punts = [];
-
-      columnes.forEach(col => {
-        const primer = col.querySelector("div");
-        if (primer) {
-          const rect = primer.getBoundingClientRect();
-          const x = rect.left + rect.width / 2 + window.scrollX;
-          const y = rect.top + rect.height / 2 + window.scrollY;
-          punts.push({ x, y });
+    function loadRows() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            rows = parsed.map(r => ({ id: Number(r.id) || 0, name: String(r.name || ''), qty: Math.max(0, parseInt(r.qty || 0, 10)) }));
+          } else {
+            rows = initial.slice();
+          }
+        } catch (e) {
+          rows = initial.slice();
         }
-      });
-
-      punts.forEach((punt, i) => {
-        if (i < punts.length - 1) {
-          const seguent = punts[i + 1];
-          const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-          line.setAttribute("x1", punt.x);
-          line.setAttribute("y1", punt.y);
-          line.setAttribute("x2", seguent.x);
-          line.setAttribute("y2", seguent.y);
-          line.setAttribute("stroke", "#3498db");
-          line.setAttribute("stroke-width", "2");
-          svg.appendChild(line);
-        }
-      });
-    }
-
-    document.getElementById("materialForm").addEventListener("submit", function(e) {
-      e.preventDefault();
-
-      const etiqueta = document.getElementById("etiqueta").value.trim();
-      if (!etiqueta) return;
-
-      let estat = etiqueta.startsWith("2") ? "Pintat i barniçat" : "Sense definir";
-
-      let materials = JSON.parse(localStorage.getItem("materials")) || [];
-      materials.push({ etiqueta, estat });
-      localStorage.setItem("materials", JSON.stringify(materials));
-
-      document.getElementById("materialForm").reset();
-      document.getElementById("formulariMaterial").style.display = "none";
-      mostrarLlistaMaterials();
-    });
-
-    function mostrarLlistaMaterials() {
-      const cont = document.getElementById("columnesMaterials");
-      cont.innerHTML = "";
-
-      const materials = JSON.parse(localStorage.getItem("materials")) || [];
-
-      // Crear 5 columnes buides
-      const columnes = [[], [], [], [], []];
-
-      // Repartir materials segons el primer dígit
-      materials.forEach((m, i) => {
-        const prefix = m.etiqueta.toString().charAt(0);
-        const index = parseInt(prefix) - 1;
-        if (index >= 0 && index < 5) {
-          columnes[index].push({ ...m, indexGlobal: i });
-        }
-      });
-
-      columnes.forEach((grup, i) => {
-        const col = document.createElement("div");
-        col.style.flex = "1";
-        col.style.border = "1px solid #ccc";
-        col.style.padding = "10px";
-        col.style.borderRadius = "6px";
-        col.style.backgroundColor = "#f9f9f9";
-        col.style.textAlign = "center";
-
-        const titol = document.createElement("h4");
-        titol.textContent = `Etiqueta ${i + 1}`;
-        titol.style.textAlign = "center";
-        col.appendChild(titol);
-
-        if (grup.length === 0) {
-          const buit = document.createElement("p");
-          buit.textContent = "—";
-          col.appendChild(buit);
-        } else {
-          // Agrupar per segon dígit
-          const grups = {};
-          grup.forEach(m => {
-            const segon = m.etiqueta.toString().charAt(1) || "0";
-            if (!grups[segon]) grups[segon] = [];
-            grups[segon].push(m);
-          });
-
-          let toggle = true;
-          Object.keys(grups).sort().forEach(clau => {
-            const bloc = document.createElement("div");
-            bloc.style.backgroundColor = toggle ? "#eeeeee" : "#f6f6f6";
-            bloc.style.padding = "8px";
-            bloc.style.marginBottom = "6px";
-            bloc.style.borderRadius = "4px";
-
-            grups[clau].forEach(m => {
-              const item = document.createElement("div");
-              item.style.marginBottom = "4px";
-              item.style.display = "flex";
-              item.style.justifyContent = "space-between";
-              item.style.alignItems = "center";
-              item.style.gap = "10px";
-
-              const text = document.createElement("span");
-              text.textContent = `#${m.etiqueta}`;
-              text.style.flex = "1";
-
-              const btnEdit = document.createElement("button");
-              btnEdit.textContent = "✏️";
-              btnEdit.className = "edit-button";
-              btnEdit.onclick = () => editarMaterial(m.indexGlobal);
-
-              const btnDelete = document.createElement("button");
-              btnDelete.textContent = "🗑️";
-              btnDelete.className = "delete-button";
-              btnDelete.onclick = () => eliminarMaterial(m.indexGlobal);
-
-              item.appendChild(text);
-              item.appendChild(btnEdit);
-              item.appendChild(btnDelete);
-              bloc.appendChild(item);
-            });
-
-            col.appendChild(bloc);
-            toggle = !toggle;
-          });
-        }
-
-        cont.appendChild(col);
-      });
-
-      // Dibuixar línies entre primers elements
-      setTimeout(() => {
-        dibuixarLiniesEntreColumnes();
-      }, 100);
-    }
-    
-    function eliminarMaterial(index) {
-      let materials = JSON.parse(localStorage.getItem("materials")) || [];
-      materials.splice(index, 1);
-      localStorage.setItem("materials", JSON.stringify(materials));
-      mostrarLlistaMaterials();
-    }
-
-    function editarMaterial(index) {
-      let materials = JSON.parse(localStorage.getItem("materials")) || [];
-      const m = materials[index];
-
-      const novaEtiqueta = prompt("Nova etiqueta:", m.etiqueta);
-      if (novaEtiqueta === null || novaEtiqueta.trim() === "") return;
-
-      let estat = novaEtiqueta.startsWith("2") ? "Pintat i barniçat" : "Sense definir";
-
-      materials[index] = { etiqueta: novaEtiqueta.trim(), estat };
-      localStorage.setItem("materials", JSON.stringify(materials));
-      mostrarLlistaMaterials();
-    }
-
-
-    function eliminarCompresCATClock() {
-      if (confirm("Segur que vols eliminar totes les compres CATClock?")) {
-        localStorage.removeItem("catClockCompres");
-        mostrarCompresRellotges();
+      } else {
+        rows = initial.slice();
+        saveRows();
       }
+      nextId = rows.reduce((m, r) => Math.max(m, r.id), 0) + 1;
     }
 
+    function saveRows() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(rows));
+    }
 
-    function mostrarCompresRellotges() {
-      const cont = document.getElementById("compresRellotges");
-      cont.innerHTML = "<h3>Compres CATClock:</h3>";
+    // render
+    const tbody = document.getElementById('rows-tbody');
+    function renderRows() {
+      tbody.innerHTML = rows.map(r => `
+        <tr data-row="${r.id}">
+          <td>${escapeHtml(r.name)}</td>
+          <td>
+            <div class="controls" data-row="${r.id}">
+              <button type="button" class="decrease" aria-label="Restar">−</button>
+              <span class="qty" aria-live="polite">${r.qty}</span>
+              <button type="button" class="increase" aria-label="Sumar">+</button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
 
-      const compres = JSON.parse(localStorage.getItem("catClockCompres")) || [];
+    // escapem simples per evitar injectar HTML
+    function escapeHtml(s) {
+      return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
 
-      if (compres.length === 0) {
-        cont.innerHTML += "<p>No hi ha compres registrades.</p>";
+    // inicialització
+    loadRows();
+    renderRows();
+
+    // delegació per + / - a la taula
+    document.addEventListener('click', function (e) {
+      const btn = e.target;
+      const ctrl = btn.closest('.controls');
+      if (!ctrl) return;
+      const rowId = Number(ctrl.dataset.row);
+      const qtyEl = ctrl.querySelector('.qty');
+      let value = parseInt(qtyEl.textContent, 10) || 0;
+
+      if (btn.classList.contains('increase')) {
+        value += 1;
+      } else if (btn.classList.contains('decrease')) {
+        value = Math.max(0, value - 1);
+      } else {
         return;
       }
 
-      const ul = document.createElement("ul");
-      compres.forEach((c, index) => {
-        const li = document.createElement("li");
-        li.style.display = "flex";
-        li.style.justifyContent = "space-between";
-        li.style.alignItems = "center";
-        li.style.marginBottom = "10px";
+      qtyEl.textContent = value;
 
-        const text = document.createElement("span");
-        text.textContent = `${c.nom} — Color: ${c.color}`;
-
-        const btn = document.createElement("button");
-        btn.textContent = "Eliminar";
-        btn.className = "delete-button";
-        btn.onclick = () => eliminarCompraIndividual(index);
-
-        li.appendChild(text);
-        li.appendChild(btn);
-        ul.appendChild(li);
-      });
-
-      cont.appendChild(ul);
-    }
-
-    function eliminarCompraIndividual(index) {
-      let compres = JSON.parse(localStorage.getItem("catClockCompres")) || [];
-      compres.splice(index, 1);
-      localStorage.setItem("catClockCompres", JSON.stringify(compres));
-      mostrarCompresRellotges();
-    }
-
-    document.getElementById("catClockForm").addEventListener("submit", function(e) {
-    e.preventDefault();
-
-    const nom = document.getElementById("nom").value.trim();
-    const color = document.getElementById("color").value;
-
-    if (!nom || !color) return;
-
-    let compres = JSON.parse(localStorage.getItem("catClockCompres")) || [];
-    compres.push({ nom, color });
-    localStorage.setItem("catClockCompres", JSON.stringify(compres));
-
-    document.getElementById("catClockForm").reset();
-    mostrarCompresRellotges();
-    goHome(); // 👈 torna a l’inici
-  });
-
-
-    window.addEventListener("load", () => {
-      mostrarDibuixos();
-    });
-
-    function veureDibuix(dataURL) {
-      document.getElementById("imgVista").src = dataURL;
-      document.getElementById("viewDrawPopup").style.display = "block";
-    }
-    function tancarVista() {
-      document.getElementById("viewDrawPopup").style.display = "none";
-    }
-
-
-
-    function openDrawForm(nou = true, index = null) {
-      document.getElementById("drawForm").style.display = "block";
-      resizeCanvasFull();
-      clearCanvas();
-
-      if (!nou && index !== null) {
-        const dibuixos = JSON.parse(localStorage.getItem("dibuixos")) || [];
-        const img = new Image();
-        img.onload = function () {
-          ctxFull.drawImage(img, 0, 0);
-          indexEditant = index;
-        };
-        img.src = dibuixos[index];
-      } else {
-        indexEditant = null;
+      // actualitzar l'array i guardar
+      const idx = rows.findIndex(r => r.id === rowId);
+      if (idx > -1) {
+        rows[idx].qty = value;
+        saveRows();
       }
-    }
-
-    function resizeCanvasFull() {
-      canvasFull.width = window.innerWidth - 40;
-      canvasFull.height = window.innerHeight - 200;
-    }
-    window.addEventListener('resize', resizeCanvasFull);
-    window.addEventListener('load', resizeCanvasFull);
-
-    canvasFull.addEventListener('mousedown', () => dibuixant = true);
-    canvasFull.addEventListener('mouseup', () => {
-      dibuixant = false;
-      ctxFull.beginPath();
-    });
-    canvasFull.addEventListener('mousemove', e => {
-      if (!dibuixant) return;
-      const rect = canvasFull.getBoundingClientRect();
-      ctxFull.lineWidth = 2;
-      ctxFull.lineCap = 'round';
-      ctxFull.strokeStyle = '#2c3e50';
-      ctxFull.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-      ctxFull.stroke();
-      ctxFull.beginPath();
-      ctxFull.moveTo(e.clientX - rect.left, e.clientY - rect.top);
     });
 
-    function clearCanvas() {
-      ctxFull.clearRect(0, 0, canvasFull.width, canvasFull.height);
+    // afegir nou article: UI handlers
+    const addBtn = document.getElementById('addBtn');
+    const overlay = document.getElementById('overlay');
+    const addForm = document.getElementById('addForm');
+    const cancelAdd = document.getElementById('cancelAdd');
+
+    function openForm() {
+      overlay.classList.add('show');
+      overlay.setAttribute('aria-hidden', 'false');
+      document.getElementById('articleName').focus();
+    }
+    function closeForm() {
+      overlay.classList.remove('show');
+      overlay.setAttribute('aria-hidden', 'true');
+      addForm.reset();
     }
 
-    function openDrawForm() {
-      document.getElementById('drawForm').style.display = 'block';
-      resizeCanvasFull();
-      clearCanvas();
-    }
+    addBtn.addEventListener('click', openForm);
+    cancelAdd.addEventListener('click', closeForm);
+    overlay.addEventListener('click', function (e) {
+      if (e.target === overlay) closeForm();
+    });
 
-    function closeDrawForm() {
-      document.getElementById('drawForm').style.display = 'none';
-    }
+    addForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      const name = (addForm.name.value || '').trim();
+      let qty = parseInt(addForm.qty.value, 10);
+      if (!name) return;
+      if (Number.isNaN(qty) || qty < 0) qty = 0;
+      const id = nextId++;
+      const newRow = { id, name, qty };
+      rows.push(newRow);
+      saveRows();
+      renderRows();
+      closeForm();
+    });
 
+    // -------------------------
+    // idle detection / blackout
+    // -------------------------
+    (function () {
+      const IDLE_MS = 5 * 60 * 1000; // 5 minuts
+      let idleTimer = null;
 
-    function guardarNouDibuix() {
-      const dataURL = canvasFull.toDataURL();
-      let dibuixos = JSON.parse(localStorage.getItem("dibuixos")) || [];
+      // crear overlay a runtime per no tocar l'estructura HTML existent
+      const idleOverlay = document.createElement('div');
+      idleOverlay.id = 'idleOverlay';
+      idleOverlay.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(idleOverlay);
 
-      if (indexEditant !== null) {
-        dibuixos[indexEditant] = dataURL;
-      } else {
-        dibuixos.push(dataURL);
+      function showIdle() {
+        idleOverlay.classList.add('show');
+      }
+      function hideIdle() {
+        idleOverlay.classList.remove('show');
       }
 
-      localStorage.setItem("dibuixos", JSON.stringify(dibuixos));
-      mostrarDibuixos();
-      closeDrawForm();
-    }
-
-    function mostrarDibuixos() {
-      const galeria = document.getElementById("drawGallery");
-      galeria.innerHTML = "";
-      let dibuixos = JSON.parse(localStorage.getItem("dibuixos")) || [];
-
-      dibuixos.forEach((dataURL, index) => {
-        const contenedor = document.createElement("div");
-        contenedor.style.display = "inline-block";
-        contenedor.style.margin = "10px";
-        contenedor.style.textAlign = "center";
-
-        const img = document.createElement("img");
-        img.src = dataURL;
-        img.style.width = "200px";
-        img.style.border = "1px solid #ccc";
-        img.style.cursor = "pointer";
-        img.title = "Fes clic per veure en gran";
-
-
-        img.onclick = () => veureDibuix(dataURL);
-
-        const btn = document.createElement("button");
-        btn.innerText = "Eliminar";
-        btn.className = "delete-button";
-        btn.onclick = () => eliminarDibuix(index);
-
-        contenedor.appendChild(img);
-        contenedor.appendChild(btn);
-        galeria.appendChild(contenedor);
-      });
-    }
-
-    function eliminarDibuix(index) {
-      let dibuixos = JSON.parse(localStorage.getItem("dibuixos")) || [];
-      dibuixos.splice(index, 1);
-      localStorage.setItem("dibuixos", JSON.stringify(dibuixos));
-      mostrarDibuixos();
-    }
-
-    function editarDibuix(index) {
-      const dibuixos = JSON.parse(localStorage.getItem("dibuixos")) || [];
-      const dataURL = dibuixos[index];
-      const img = new Image();
-      img.onload = function () {
-        clearCanvas();
-        ctxFull.drawImage(img, 0, 0);
-        canvasFull.dataset.editingIndex = index;
-        openDrawForm();
-      };
-      img.src = dataURL;
-    }
-
-    function showDrawSection() {
-      document.getElementById('mainGrid').style.display = 'none';
-      document.getElementById('drawSection').style.display = 'block';
-      document.getElementById('addDrawBtn').style.display = 'block';
-      resizeCanvas();
-      mostrarDibuixos();
-    }
-
-    function showClockSection() {
-      document.getElementById('mainGrid').style.display = 'none';
-      document.getElementById('clockSection').style.display = 'block';
-      document.getElementById('addBtn').style.display = 'block';
-      mostrarCompresRellotges();
-    }
-
-    function openFullForm() {
-      document.getElementById('clockSection').style.display = 'none';
-      document.getElementById('addBtn').style.display = 'none';
-      document.getElementById('fullForm').style.display = 'block';
-    }
-
-    function goHome() {
-      window.location.href = "https://tianvilalta.github.io/TV/";
-    }
-
-    function showDrawSection() {
-      document.getElementById('mainGrid').style.display = 'none';
-      document.getElementById('drawSection').style.display = 'block';
-      document.getElementById('addBtn').style.display = 'none';
-      resizeCanvas();
-      carregarCanvas();
-    }
-
-    // Dibuix al canvas
-    const canvas = document.getElementById('drawCanvas');
-    const ctx = canvas.getContext('2d');
-    let drawing = false;
-
-    function resizeCanvas() {
-      const controlsHeight = document.getElementById('drawControls').offsetHeight;
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight - controlsHeight - 100; // deixa espai pels botons
-    }
-
-    window.addEventListener('resize', resizeCanvas);
-    window.addEventListener('load', resizeCanvas);
-
-    canvas.addEventListener('mousedown', () => drawing = true);
-    canvas.addEventListener('mouseup', () => {
-      drawing = false;
-      ctx.beginPath();
-    });
-    canvas.addEventListener('mousemove', draw);
-
-    function draw(e) {
-      if (!drawing) return;
-      const rect = canvas.getBoundingClientRect();
-      ctx.lineWidth = 2;
-      ctx.lineCap = 'round';
-      ctx.strokeStyle = '#2c3e50';
-      ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
-    }
-
-    function clearCanvas() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
-
-
-    function guardarCanvas() {
-      const dataURL = canvas.toDataURL();
-      localStorage.setItem("dibuixGuardat", dataURL);
-    }
-
-    function carregarCanvas() {
-      const dataURL = localStorage.getItem("dibuixGuardat");
-      if (dataURL) {
-        const img = new Image();
-        img.onload = function () {
-          ctx.drawImage(img, 0, 0);
-        };
-        img.src = dataURL;
+      function resetIdleTimer() {
+        hideIdle();
+        if (idleTimer) clearTimeout(idleTimer);
+        idleTimer = setTimeout(showIdle, IDLE_MS);
       }
-    }
+
+      // events que considerem activitat
+      const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'wheel', 'scroll'];
+      events.forEach(ev => window.addEventListener(ev, resetIdleTimer, { passive: true }));
+
+      // iniciar comptador
+      resetIdleTimer();
+    })();
   </script>
-
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
